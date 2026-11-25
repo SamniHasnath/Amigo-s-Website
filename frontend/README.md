@@ -1,50 +1,85 @@
-# React + TypeScript + Vite
+# Amigo's Café — Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive website for **Amigo's Café**, a coffee and food stop on Main Street, Trincomalee, Sri Lanka.
+Visitors can browse the menu, view dishes in 3D, order ahead for pickup and book a table.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Hero and about sections** with looping café videos
+- **Full menu** with categories and search. Each dish can be opened in an interactive **3D preview**
+- **Order ahead**: add dishes to a cart and send a pickup order
+- **Table reservations** with date, time and party size
+- **Gallery** of café photos, plus a small interactive latte-art game
+- **Visit section** with an embedded map, opening hours and contact details
+- **Live open/closed status**, based on Sri Lanka time
+- **Light and dark themes**
+- **Responsive layout** for phones, tablets and desktops
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+| Area | Tools |
+| --- | --- |
+| Framework | React 18, TypeScript, Vite |
+| Styling | Tailwind CSS |
+| Animation | Framer Motion |
+| 3D | Three.js, React Three Fiber, Drei |
+| State | Zustand |
+| HTTP | Axios |
 
-- Configure the top-level `parserOptions` property like this:
+## Getting started
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+**Requirements:** Node.js 18 or later, and npm.
+
+```bash
+npm install
+npm run dev
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+Then open http://localhost:5173 in your browser.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+The site runs on **built-in demo data** by default, so no backend is needed. Orders and reservations are saved in the browser's local storage.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Type-check and build for production (output in `dist/`) |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint |
+
+## Connecting a backend (optional)
+
+To use a real API instead of the demo data, copy `.env.example` to `.env` and set the API URL:
+
+```env
+VITE_API_URL=http://localhost:3000/api
 ```
+
+Leave `VITE_API_URL` empty to keep using the demo data.
+
+## Project structure
+
+```
+src/
+├── components/   Page sections and UI (Hero, Menu, Reserve, Footer, …)
+├── three/        3D scenes and models
+├── lib/          API client, demo data API, opening-hours helpers
+├── data/         Default menu, gallery and café settings
+├── store/        Global state (menu, cart, theme, settings)
+├── types/        Shared TypeScript types
+├── App.tsx       Page layout
+└── main.tsx      Entry point
+public/
+├── menu/         Dish photos
+├── gallery/      Gallery photos
+└── video/        Hero and about-section videos
+```
+
+## Note
+
+This repository contains the **public website only**. The staff admin panel and the backend API are kept in a separate private codebase.
+
+---
+
+Designed and developed by [Neirah Tech](https://neirahtech.com).
