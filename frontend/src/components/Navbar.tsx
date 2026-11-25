@@ -23,6 +23,18 @@ export default function Navbar() {
   const [open, setOpenNow] = useState(isOpenNow(settings));
   const [menu, setMenu] = useState(false);
 
+  /** Phone menu links: close the menu (which unlocks page scrolling) first, then scroll to the section.
+   *  A plain #link would try to jump while scrolling is still locked, so nothing would move. */
+  const goTo = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    e.preventDefault();
+    setMenu(false);
+    document.body.style.overflow = '';
+    requestAnimationFrame(() => {
+      document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', hash);
+    });
+  };
+
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 30);
     on();
@@ -161,7 +173,7 @@ export default function Navbar() {
                   <li key={h}>
                     <a
                       href={h}
-                      onClick={() => setMenu(false)}
+                      onClick={(e) => goTo(e, h)}
                       className="flex items-center justify-between rounded-xl px-3.5 py-3 text-lg font-display text-crema transition hover:bg-caramel/10 hover:text-caramel active:bg-caramel/20"
                     >
                       <span>{l}</span>
