@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- Theme ----------
+   Light (default): warm cream page, dark-brown ink, rust accent — inspired by the café's bakery-style branding.
+   .theme-dark: the brown "kraft" panels (3D menu stage, footer) where real dish photos sit best. */
+:root {
+  --page: 246 239 228;      /* #F6EFE4 cream page */
+  --surface: 236 226 211;   /* #ECE2D3 inset / cards */
+  --surface-2: 226 212 192; /* #E2D4C0 */
+  --surface-3: 214 197 174; /* #D6C5AE */
+  --ink: 74 44 26;          /* #4A2C1A dark brown text */
+  --ink-2: 107 76 56;       /* #6B4C38 */
+  --ink-3: 150 120 96;      /* #967860 muted */
+  --accent: 180 87 43;      /* #B4572B rust (logo colour) */
+  --accent-2: 143 66 32;    /* #8F4220 */
+  --on-accent: 250 244 235;
+  --ok: 46 125 80;
+  --danger: 178 44 36;
+}
+.theme-dark {
+  --page: 48 32 24;         /* #302018 dark chocolate */
+  --surface: 33 19 14;      /* #21130E espresso */
+  --surface-2: 59 40 31;
+  --surface-3: 74 51 39;
+  --ink: 243 231 213;       /* #F3E7D5 warm cream */
+  --ink-2: 227 210 187;
+  --ink-3: 187 165 139;
+  --accent: 227 170 101;    /* #E3AA65 caramel gold */
+  --accent-2: 199 122 53;   /* #C77A35 burnt orange */
+  --ok: 127 200 169;
+  --danger: 252 165 165;
+  color: rgb(var(--ink));
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(80px + env(safe-area-inset-top, 0px));
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-espresso-800 font-sans text-crema antialiased;
+    overflow-x: clip;
+    min-width: 320px;
+  }
+  h1, h2, h3 { font-variation-settings: 'SOFT' 100; word-break: break-word; }
+  ::selection { @apply bg-caramel text-espresso; }
+  :focus-visible { @apply outline-none ring-2 ring-caramel ring-offset-2 ring-offset-espresso-800; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .btn { @apply inline-flex min-h-[46px] items-center justify-center gap-2 rounded-full px-5 sm:px-6 text-sm font-semibold transition duration-300 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation; }
+  .btn-gold { @apply btn bg-caramel shadow-glow-sm hover:-translate-y-0.5 hover:bg-caramel-600 hover:shadow-glow active:scale-[.97]; color: rgb(var(--on-accent)); }
+  .theme-dark .btn-gold { color: #21130E; }
+  .btn-ghost { @apply btn border border-crema/30 text-crema hover:border-caramel hover:text-caramel active:scale-[.97]; }
+  .eyebrow { @apply inline-block -rotate-2 font-script text-xl sm:text-2xl leading-none text-caramel; }
+  .label-caps { @apply text-xs font-semibold uppercase tracking-[0.25em] text-crema-200; }
+  .h2 { @apply font-display text-3xl font-semibold leading-[1.1] text-caramel sm:text-4xl lg:text-5xl; text-wrap: balance; }
+  .h2 em { @apply font-medium text-crema; }
+  .glass { @apply rounded-2xl sm:rounded-3xl border border-crema/10 bg-espresso/70 shadow-[0_12px_40px_-24px_rgba(74,44,26,.45)] backdrop-blur-xl; }
+  .field { @apply grid min-w-0 gap-1.5 text-sm font-medium text-crema-200; }
+  .input { @apply min-h-[46px] w-full min-w-0 rounded-xl border border-crema/15 bg-espresso/80 px-3.5 text-base text-crema placeholder:text-crema-400/60 focus:border-caramel focus:outline-none; }
+  .chip { @apply min-h-[40px] whitespace-nowrap rounded-full border border-crema/15 px-3.5 sm:px-4 text-xs sm:text-sm font-medium transition hover:border-caramel/60 active:scale-95 touch-manipulation; }
+  .chip-on { @apply border-caramel bg-caramel; color: rgb(var(--on-accent)); }
+  .theme-dark .chip-on { color: #21130E; }
+}
+
+/* film grain over everything for a warm, analogue feel */
+.grain::after {
+  content: ''; position: fixed; inset: -50%; pointer-events: none; z-index: 60; opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* soft vignette behind the 3D scene */
+.vignette { background: radial-gradient(ellipse at 66% 34%, #fffaf2 0%, #f6efe4 40%, #ecdfcb 100%); }
+/* evening: a touch warmer and deeper */
+.vignette[data-time='evening'] { background: radial-gradient(ellipse at 66% 34%, #fbf0e0 0%, #f0e2cd 45%, #e2cfb3 100%); }
+.theme-dark .vignette { background: radial-gradient(ellipse at 62% 38%, #4a2f1f 0%, #302018 45%, #21130E 100%); }
+.theme-dark .vignette[data-time='evening'] { background: radial-gradient(ellipse at 62% 38%, #3d2416 0%, #2a1a12 45%, #160c08 100%); }
+html { transition: background-color .4s ease; }
+html.theme-dark { color-scheme: dark; }
+
+.tilt { transform-style: preserve-3d; transition: transform .25s ease; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.tilt .pop { transform: translateZ(40px); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area utilities for mobile devices (iPhone notch/island/home indicator) */
+.pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px)); }
+.pt-safe { padding-top: max(0.5rem, env(safe-area-inset-top, 0px)); }
+
+/* hero film: feathered into the page (bottom edge on phones; left, top and bottom edges on large screens) */
+.hero-video {
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+@media (min-width: 1024px) {
+  .hero-video {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 28%, #000 92%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 16%, #000 80%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent 0%, #000 28%, #000 92%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 16%, #000 80%, transparent 100%);
+    mask-composite: intersect;
+  }
+}
+.theme-dark .hero-video video, .theme-dark .hero-video img { filter: brightness(.78) saturate(1.08) contrast(1.04); }
