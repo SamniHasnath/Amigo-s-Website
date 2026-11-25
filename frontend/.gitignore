@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 # Keep the staff panel and local env out of the public website repo
-src/admin/
 .env
 .env.*
 !.env.example
