@@ -49,6 +49,10 @@ interface CartState {
   add: (m: MenuItem) => void;
   setQty: (id: number, qty: number) => void;
   clear: () => void;
+  /** take a dish out of the order completely, whatever its quantity */
+  remove: (id: number) => void;
+  /** put back a previous set of lines (used by "Undo") */
+  restore: (lines: CartLine[]) => void;
   setOpen: (o: boolean) => void;
 }
 export const useCart = create<CartState>()(
@@ -68,6 +72,8 @@ export const useCart = create<CartState>()(
         lines: qty <= 0 ? s.lines.filter((l) => l.id !== id) : s.lines.map((l) => (l.id === id ? { ...l, qty: Math.min(20, qty) } : l)),
       })),
       clear: () => set({ lines: [] }),
+      remove: (id) => set((s) => ({ lines: s.lines.filter((l) => l.id !== id) })),
+      restore: (lines) => set({ lines }),
       setOpen: (open) => set({ open }),
     }),
     { name: 'amigos-cart', storage: safeStorage, partialize: (s) => ({ lines: s.lines }) },
