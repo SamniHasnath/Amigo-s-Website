@@ -1,6 +1,6 @@
 import { useSettings } from '@/store';
 import { hoursLabel, telHref } from '@/lib/hours';
-import { Reveal } from './ui';
+import { AnimatedHeading, Eyebrow, Reveal } from './ui';
 import GoogleMapCard from './GoogleMapCard';
 
 export default function Visit() {
@@ -9,8 +9,8 @@ export default function Visit() {
     <section id="visit" className="relative bg-espresso py-16 sm:py-24 lg:py-28">
       <div className="container-x grid items-center gap-8 sm:gap-12 lg:grid-cols-[1fr_1.1fr]">
         <div>
-          <Reveal><p className="eyebrow mb-2 sm:mb-4">Drop by</p></Reveal>
-          <Reveal delay={0.1}><h2 className="h2">Come say hi at 280 Main Street.</h2></Reveal>
+          <Eyebrow className="mb-2 sm:mb-4">Drop by</Eyebrow>
+          <AnimatedHeading className="h2" text="Come say hi at 280 Main Street." highlight="280 Main Street." />
           <Reveal delay={0.2}>
             <p className="mt-4 text-base sm:text-lg text-crema-200">
               Conveniently located on Main Street in Trincomalee, just a short ride from Dutch Bay and the town center. Perfect for your morning coffee run, escaping the afternoon sun, or unwinding over dinner.
