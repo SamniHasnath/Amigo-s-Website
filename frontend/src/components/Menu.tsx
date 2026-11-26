@@ -1,13 +1,44 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { rs } from '@/lib/api';
 import { useCart, useMenu, useToast } from '@/store';
 import DishThumb from './DishThumb';
-import { Reveal, Spinner } from './ui';
+import { AnimatedHeading, Eyebrow, Spinner } from './ui';
 import Dish3DPreview from './Dish3DPreview';
 import { hasWebGL } from '@/lib/webgl';
 import { flyToCart } from '@/lib/flyToCart';
 import { imageSrc } from '@/lib/api';
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+const SPRING = { type: 'spring', stiffness: 500, damping: 30 } as const;
+
+/** A number that rolls up when it grows and down when it shrinks. */
+function RollingNumber({ value }: { value: number }) {
+  const prev = useRef(value);
+  const dir = value >= prev.current ? 1 : -1;
+  useEffect(() => { prev.current = value; }, [value]);
+  return (
+    <span className="relative grid h-5 w-5 sm:w-6 place-items-center overflow-hidden text-xs sm:text-sm font-semibold" aria-live="polite">
+      <AnimatePresence mode="popLayout" initial={false} custom={dir}>
+        <motion.span
+          key={value}
+          custom={dir}
+          variants={{
+            enter: (d: number) => ({ y: d * 14, opacity: 0 }),
+            center: { y: 0, opacity: 1 },
+            exit: (d: number) => ({ y: d * -14, opacity: 0 }),
+          }}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.22, ease: EASE }}
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
 export default function Menu() {
   const { items, categories, loading, error, load } = useMenu();
@@ -62,8 +93,8 @@ export default function Menu() {
         {/* Header and Controls */}
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <Reveal><p className="eyebrow mb-2 sm:mb-4">Our full menu</p></Reveal>
-            <Reveal delay={0.1}><h2 className="h2">Freshly prepared. Made when you order.</h2></Reveal>
+            <Eyebrow className="mb-2 sm:mb-4">Our full menu</Eyebrow>
+            <AnimatedHeading className="h2" text="Freshly prepared. Made when you order." highlight="Made when you order." />
           </div>
           <div className="flex w-full flex-col sm:w-auto sm:flex-row sm:items-end gap-3">
             <div className="relative w-full sm:w-64 lg:w-72">
@@ -94,23 +125,38 @@ export default function Menu() {
         </div>
 
         {/* Categories Tab Bar */}
-        <div
+        <motion.div
+          layoutScroll
           className="no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mt-6 sm:mt-8 flex gap-2 overflow-x-auto pb-2 scroll-smooth"
           role="tablist"
           aria-label="Menu categories"
         >
-          {[{ slug: 'popular', name: '★ Popular' }, ...categories.filter((c) => items.some((m) => m.categoryId === c.id))].map((c) => (
-            <button
-              key={c.slug}
-              role="tab"
-              aria-selected={!q && cat === c.slug}
-              onClick={() => { setCat(c.slug); setQ(''); }}
-              className={`chip shrink-0 ${!q && cat === c.slug ? 'chip-on' : 'text-crema-200'}`}
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
+          {[{ slug: 'popular', name: '★ Popular' }, ...categories.filter((c) => items.some((m) => m.categoryId === c.id))].map((c) => {
+            const on = !q && cat === c.slug;
+            return (
+              <button
+                key={c.slug}
+                role="tab"
+                aria-selected={on}
+                onClick={(e) => {
+                  setCat(c.slug); setQ('');
+                  e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }}
+                // the caramel background is a separate pill that glides between tabs
+                className={`chip relative isolate shrink-0 ${on ? 'chip-on !border-transparent !bg-transparent' : 'text-crema-200'}`}
+              >
+                {on && (
+                  <motion.span
+                    layoutId="menu-tab"
+                    className="absolute -inset-px -z-10 rounded-full bg-caramel shadow-glow-sm"
+                    transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+                  />
+                )}
+                {c.name}
+              </button>
+            );
+          })}
+        </motion.div>
 
         {loading && <p className="mt-8 sm:mt-10 flex items-center gap-2.5 text-sm text-crema-200"><Spinner /> Loading the menu…</p>}
         {error && (
@@ -120,28 +166,38 @@ export default function Menu() {
         )}
 
         {/* List View */}
-        <div className={`mt-8 sm:mt-10 grid gap-8 sm:gap-12`}>
-          <AnimatePresence mode="popLayout">
+        <div className="relative mt-8 sm:mt-10 grid gap-8 sm:gap-12">
+          <AnimatePresence mode="popLayout" initial={false}>
             {groups.map(([section, list]) => (
               <motion.div
-                key={section + cat + q}
-                layout
+                // keyed by section only, so a section shared by two filters stays and its cards move
+                key={section}
+                layout="position"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35 }}
+                exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.35, ease: EASE }}
               >
                 <h3 className="mb-4 sm:mb-5 flex items-center gap-3 font-display text-xl sm:text-2xl">
                   <span>{section}</span>
                   <span className="h-px flex-1 bg-gradient-to-r from-caramel/50 to-transparent" />
                 </h3>
-                <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
-                  {list.map((m) => {
+                <div className="relative grid gap-3.5 sm:gap-4 md:grid-cols-2">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                  {list.map((m, i) => {
                     const qty = lines.find((l) => l.id === m.id)?.qty ?? 0;
                     return (
-                      <article
+                      <motion.article
                         key={m.id}
-                        className="group flex gap-3 sm:gap-4 rounded-2xl border border-crema/10 bg-espresso/45 p-3.5 sm:p-4 transition hover:-translate-y-0.5 hover:border-caramel/50 hover:bg-espresso/70"
+                        layout="position"
+                        // cards appear one after another; only the first few are delayed so filtering stays snappy
+                        initial={{ opacity: 0, y: 24 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.18 } }}
+                        viewport={{ once: true, margin: '-40px' }}
+                        transition={{ duration: 0.4, delay: Math.min(i, 6) * 0.04, ease: EASE, layout: { duration: 0.35, ease: EASE } }}
+                        whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                        className="group flex gap-3 sm:gap-4 rounded-2xl border border-crema/10 bg-espresso/45 p-3.5 sm:p-4 transition-[border-color,background-color,box-shadow] duration-300 hover:border-caramel/50 hover:bg-espresso/70 hover:shadow-glow-sm"
                       >
                         <div className="grid h-16 w-16 sm:h-20 sm:w-20 shrink-0 place-items-center rounded-xl bg-espresso-600/70 transition group-hover:rotate-[-2deg] group-hover:scale-105">
                           <DishThumb item={m} className="h-14 w-14 sm:h-16 sm:w-16" />
@@ -152,8 +208,17 @@ export default function Menu() {
                               <h4 className="font-semibold text-sm sm:text-base leading-snug">
                                 {m.name}
                                 {m.isPopular && (
-                                  <span className="ml-1.5 inline-block rounded-full bg-caramel/15 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-caramel align-middle">
+                                  <span className="relative ml-1.5 inline-block overflow-hidden rounded-full bg-caramel/15 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-caramel align-middle">
                                     Popular
+                                    {/* a soft shine sweeps across once when the card appears */}
+                                    <motion.span
+                                      aria-hidden="true"
+                                      className="pointer-events-none absolute inset-y-0 left-0 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/45 to-transparent"
+                                      initial={{ x: '-150%' }}
+                                      whileInView={{ x: '300%' }}
+                                      viewport={{ once: true }}
+                                      transition={{ duration: 1.1, delay: 0.5 + Math.min(i, 6) * 0.04, ease: 'easeInOut' }}
+                                    />
                                   </span>
                                 )}
                               </h4>
@@ -181,37 +246,58 @@ export default function Menu() {
                             ) : <span />}
                             {!m.isAvailable ? (
                               <span className="rounded-full border border-danger/30 px-3 py-1.5 text-xs text-danger">Sold out</span>
-                            ) : qty === 0 ? (
-                              <button
-                                className="chip min-h-[36px] sm:min-h-[40px] px-3.5 sm:px-4 text-xs sm:text-sm text-crema"
-                                onClick={(e) => { add(m); flyToCart(e.currentTarget, m.imageUrl ? imageSrc(m.imageUrl) : null); toast(`${m.name} added`); }}
-                              >
-                                + Add
-                              </button>
                             ) : (
-                              <div className="flex items-center gap-1 rounded-full border border-caramel/50 bg-espresso/40">
-                                <button
-                                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-full text-base sm:text-lg active:scale-90"
-                                  onClick={() => setQty(m.id, qty - 1)}
-                                  aria-label={`Remove one ${m.name}`}
-                                >
-                                  −
-                                </button>
-                                <span className="w-5 sm:w-6 text-center text-xs sm:text-sm font-semibold" aria-live="polite">{qty}</span>
-                                <button
-                                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-full text-base sm:text-lg active:scale-90"
-                                  onClick={(e) => { add(m); flyToCart(e.currentTarget); }}
-                                  aria-label={`Add one ${m.name}`}
-                                >
-                                  +
-                                </button>
-                              </div>
+                              // "+ Add" morphs into the "− 1 +" control (and back)
+                              <AnimatePresence mode="popLayout" initial={false}>
+                                {qty === 0 ? (
+                                  <motion.button
+                                    key="add"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    whileTap={{ scale: 0.88 }}
+                                    transition={SPRING}
+                                    className="chip min-h-[36px] sm:min-h-[40px] px-3.5 sm:px-4 text-xs sm:text-sm text-crema"
+                                    onClick={(e) => { add(m); flyToCart(e.currentTarget, m.imageUrl ? imageSrc(m.imageUrl) : null); toast(`${m.name} added`); }}
+                                  >
+                                    + Add
+                                  </motion.button>
+                                ) : (
+                                  <motion.div
+                                    key="qty"
+                                    initial={{ opacity: 0, scale: 0.6, width: 40 }}
+                                    animate={{ opacity: 1, scale: 1, width: 'auto' }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={SPRING}
+                                    className="flex items-center gap-1 overflow-hidden rounded-full border border-caramel/50 bg-espresso/40"
+                                  >
+                                    <motion.button
+                                      whileTap={{ scale: 0.8 }}
+                                      className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full text-base sm:text-lg"
+                                      onClick={() => setQty(m.id, qty - 1)}
+                                      aria-label={`Remove one ${m.name}`}
+                                    >
+                                      −
+                                    </motion.button>
+                                    <RollingNumber value={qty} />
+                                    <motion.button
+                                      whileTap={{ scale: 0.8 }}
+                                      className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full text-base sm:text-lg"
+                                      onClick={(e) => { add(m); flyToCart(e.currentTarget); }}
+                                      aria-label={`Add one ${m.name}`}
+                                    >
+                                      +
+                                    </motion.button>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             )}
                           </div>
                         </div>
-                      </article>
+                      </motion.article>
                     );
                   })}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             ))}
