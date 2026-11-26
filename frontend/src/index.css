@@ -87,6 +87,18 @@
 html { transition: background-color .4s ease; }
 html.theme-dark { color-scheme: dark; }
 
+/* moving dish strip under the hero */
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee-track { animation: marquee 56s linear infinite; padding: 6px 0; }
+.marquee-mask:hover .marquee-track,
+.marquee-mask:focus-within .marquee-track { animation-play-state: paused; }
+.marquee-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+/* reduced motion: no sliding; it becomes a strip you can scroll sideways */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+  .marquee-mask { overflow-x: auto; scrollbar-width: none; }
+}
+
 .tilt { transform-style: preserve-3d; transition: transform .25s ease; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
 .tilt .pop { transform: translateZ(40px); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
