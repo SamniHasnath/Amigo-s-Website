@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRef, type ReactNode, type MouseEvent } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { Fragment, useRef, type ReactNode, type MouseEvent } from 'react';
 import { useToast } from '@/store';
 import { isTouch, prefersReducedMotion } from '@/lib/webgl';
 
@@ -10,6 +10,83 @@ export function Reveal({ children, delay = 0, className = '' }: { children: Reac
       viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}>
       {children}
     </motion.div>
+  );
+}
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+const WORD_GAP = 0.05; // seconds between words
+
+/** Section heading that rises in word by word as it scrolls into view.
+ *  `highlight` (a phrase from `text`) is set in italics and gets a caramel underline drawn under it. */
+export function AnimatedHeading({ text, highlight, className = 'h2', as = 'h2' }: { text: string; highlight?: string; className?: string; as?: 'h1' | 'h2' | 'h3' }) {
+  const Tag = motion[as];
+  const at = highlight ? text.indexOf(highlight) : -1;
+  const parts = at < 0
+    ? [{ t: text, hl: false }]
+    : [{ t: text.slice(0, at), hl: false }, { t: highlight!, hl: true }, { t: text.slice(at + highlight!.length), hl: false }];
+  let n = 0; // running word index, for the delay
+  const words = (s: string) => s.split(/\s+/).filter(Boolean).map((w, j) => {
+    const i = n++;
+    return (
+      <Fragment key={i}>
+        {j > 0 && ' '}
+        <span className="inline-block overflow-hidden pb-[0.14em] -mb-[0.14em] align-bottom">
+          <motion.span
+            className="inline-block"
+            variants={{ hidden: { y: '110%', opacity: 0 }, show: { y: 0, opacity: 1, transition: { duration: 0.6, delay: i * WORD_GAP, ease: EASE } } }}
+          >
+            {w}
+          </motion.span>
+        </span>
+      </Fragment>
+    );
+  });
+  const rendered = parts.filter((p) => p.t.trim()).map((p, k) => ({ k, hl: p.hl, el: words(p.t) }));
+  const underlineDelay = n * WORD_GAP + 0.25;
+  return (
+    <Tag className={className} aria-label={text} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-80px' }}>
+      {rendered.map((p) => <Fragment key={p.k}>{p.k > 0 && ' '}{p.hl ? (
+        <motion.em
+          aria-hidden="true"
+          className="bg-no-repeat [box-decoration-break:clone] [-webkit-box-decoration-break:clone]"
+          style={{ backgroundImage: 'linear-gradient(rgb(var(--accent) / .7), rgb(var(--accent) / .7))', backgroundPosition: '0 92%' }}
+          variants={{ hidden: { backgroundSize: '0% 0.09em' }, show: { backgroundSize: '100% 0.09em', transition: { duration: 0.7, delay: underlineDelay, ease: EASE } } }}
+        >
+          {p.el}
+        </motion.em>
+      ) : <span aria-hidden="true">{p.el}</span>}</Fragment>)}
+    </Tag>
+  );
+}
+
+/** Small script label above a heading: "writes" itself in from left to right. */
+export function Eyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.p
+      className={`eyebrow ${className}`}
+      initial={{ clipPath: 'inset(0 100% 0 0)', opacity: 0.4 }}
+      whileInView={{ clipPath: 'inset(0 0% 0 0)', opacity: 1 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.9, ease: EASE }}
+    >
+      {children}
+    </motion.p>
+  );
+}
+
+/** Parallax: the content drifts slower than the page as you scroll past it.
+ *  It's slightly enlarged so the edges never show while it moves. Off with reduced motion. */
+export function Parallax({ children, amount = 24, className = '' }: { children: ReactNode; amount?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const still = prefersReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const y = useTransform(scrollYProgress, [0, 1], still ? [0, 0] : [-amount, amount]);
+  return (
+    <div ref={ref} className={`h-full w-full overflow-hidden ${className}`}>
+      <motion.div style={{ y, scale: still ? 1 : 1.12 }} className="h-full w-full will-change-transform">
+        {children}
+      </motion.div>
+    </div>
   );
 }
 
