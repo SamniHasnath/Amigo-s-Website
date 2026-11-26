@@ -1,13 +1,29 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { api, rs } from '@/lib/api';
-import { cartTotal, useCart, useSettings } from '@/store';
+import { cartTotal, useCart, useSettings, type CartLine } from '@/store';
 import { telHref } from '@/lib/hours';
 import type { Order, OrderType } from '@/types';
 import { Spinner } from './ui';
 
 export default function CartDrawer() {
-  const { lines, open, setOpen, setQty, clear } = useCart();
+  const { lines, open, setOpen, setQty, clear, remove, restore } = useCart();
+  // "Undo" bar: remembers the order as it was before the last removal, for a few seconds
+  const [undo, setUndo] = useState<{ before: CartLine[]; label: string } | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const undoTimer = useRef<ReturnType<typeof setTimeout>>();
+  const offerUndo = (label: string) => {
+    setUndo({ before: lines, label });
+    clearTimeout(undoTimer.current);
+    undoTimer.current = setTimeout(() => setUndo(null), 5000);
+  };
+  const removeLine = (l: CartLine) => { offerUndo(`${l.name} removed`); remove(l.id); };
+  const minusOne = (l: CartLine) => { if (l.qty === 1) removeLine(l); else setQty(l.id, l.qty - 1); };
+  const clearAll = () => { offerUndo('Order cleared'); clear(); setConfirmClear(false); };
+  const doUndo = () => { if (undo) restore(undo.before); setUndo(null); clearTimeout(undoTimer.current); };
+  useEffect(() => () => clearTimeout(undoTimer.current), []);
+  // forget pending undo / confirm when the drawer closes
+  useEffect(() => { if (!open) { setUndo(null); setConfirmClear(false); } }, [open]);
   const [step, setStep] = useState<'cart' | 'details' | 'done'>('cart');
   const [form, setForm] = useState({ customerName: '', phone: '', type: 'TAKEAWAY' as OrderType, note: '' });
   const [busy, setBusy] = useState(false);
@@ -76,18 +92,43 @@ export default function CartDrawer() {
                       </div>
                     </div>
                   )}
+                  {lines.length > 1 && (
+                    <div className="mb-1 flex items-center justify-between text-xs sm:text-sm">
+                      <span className="text-crema-400">{lines.length} dishes</span>
+                      {confirmClear ? (
+                        <span className="flex items-center gap-2">
+                          <span className="text-crema-200">Remove everything?</span>
+                          <button onClick={clearAll} className="rounded-full bg-danger/15 px-3 py-1.5 font-semibold text-danger hover:bg-danger/25">Yes, clear</button>
+                          <button onClick={() => setConfirmClear(false)} className="rounded-full px-3 py-1.5 text-crema-200 hover:text-crema">Cancel</button>
+                        </span>
+                      ) : (
+                        <button onClick={() => setConfirmClear(true)} className="rounded-full px-3 py-1.5 text-crema-400 transition hover:bg-danger/10 hover:text-danger">
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <ul className="divide-y divide-crema/10">
+                    <AnimatePresence initial={false}>
                     {lines.map((l) => (
-                      <li key={l.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 py-3.5 sm:py-4">
+                      <motion.li
+                        key={l.id}
+                        layout
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, x: 60, height: 0, transition: { duration: 0.25 } }}
+                        className="overflow-hidden"
+                      >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 py-3.5 sm:py-4">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm sm:text-base leading-snug">{l.name}</p>
                           <p className="text-xs sm:text-sm text-crema-400">{rs(l.price)} each</p>
                         </div>
-                        <div className="flex items-center justify-between sm:justify-end gap-3">
+                        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
                           <div className="flex items-center rounded-full border border-crema/20 bg-espresso/50">
                             <button
                               className="h-8 w-8 sm:h-9 sm:w-9 text-base active:scale-90"
-                              onClick={() => setQty(l.id, l.qty - 1)}
+                              onClick={() => minusOne(l)}
                               aria-label={`Remove one ${l.name}`}
                             >
                               −
@@ -101,14 +142,42 @@ export default function CartDrawer() {
                               +
                             </button>
                           </div>
-                          <span className="text-right font-semibold text-sm sm:text-base text-caramel min-w-[70px] sm:w-24">
+                          <span className="ml-auto text-right font-semibold text-sm sm:text-base text-caramel min-w-[70px] sm:w-24">
                             {rs(l.price * l.qty)}
                           </span>
+                          <button
+                            onClick={() => removeLine(l)}
+                            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-crema-400 transition hover:bg-danger/10 hover:text-danger active:scale-90"
+                            aria-label={`Remove ${l.name} from order`}
+                            title="Remove"
+                          >
+                            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+                            </svg>
+                          </button>
                         </div>
-                      </li>
+                      </div>
+                      </motion.li>
                     ))}
+                    </AnimatePresence>
                   </ul>
                 </div>
+
+                {/* Undo bar */}
+                <AnimatePresence>
+                  {undo && (
+                    <motion.div
+                      role="status"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 16 }}
+                      className="mx-4 sm:mx-6 mb-3 flex items-center justify-between gap-3 rounded-xl border border-crema/15 bg-espresso px-4 py-2.5 text-sm shadow-lg"
+                    >
+                      <span className="truncate text-crema-200">{undo.label}</span>
+                      <button onClick={doUndo} className="shrink-0 font-semibold text-caramel hover:underline">Undo</button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {lines.length > 0 && (
                   <footer className="border-t border-crema/10 px-4 sm:px-6 py-4 sm:py-5 pb-safe bg-espresso-800">
                     <div className="flex justify-between text-base sm:text-lg">
