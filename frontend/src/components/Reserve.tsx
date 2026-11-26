@@ -5,7 +5,7 @@ import { hoursLabel, isOpenNow, telHref, timeSlots, to12h, todayISO } from '@/li
 import { DAY_NAMES } from '@/data/settings';
 import { useCart, useSettings } from '@/store';
 import type { Reservation } from '@/types';
-import { Reveal, Spinner, Tilt } from './ui';
+import { AnimatedHeading, Eyebrow, Reveal, Spinner, Tilt } from './ui';
 
 export default function Reserve() {
   const s = useSettings((st) => st.settings);
@@ -30,8 +30,8 @@ export default function Reserve() {
     <section id="reserve" className="relative bg-espresso-800 py-16 sm:py-24 lg:py-28">
       <div className="container-x grid items-center gap-8 sm:gap-12 lg:grid-cols-2">
         <div>
-          <Reveal><p className="eyebrow mb-2 sm:mb-4">Tables & Takeaway</p></Reveal>
-          <Reveal delay={0.1}><h2 className="h2">Drop in, order ahead, or book a table.</h2></Reveal>
+          <Eyebrow className="mb-2 sm:mb-4">Tables & Takeaway</Eyebrow>
+          <AnimatedHeading className="h2" text="Drop in, order ahead, or book a table." highlight="book a table." />
           <Reveal delay={0.2}>
             <p className="mt-4 sm:mt-6 max-w-md text-base sm:text-lg text-crema-200">
               Planning lunch with family, dinner with friends, or picking up breakfast on your way to the beach? Order online for quick counter pickup, or let us know when to expect you.
