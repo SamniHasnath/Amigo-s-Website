@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import { cartCount, useCart, useSettings } from '@/store';
@@ -22,12 +22,41 @@ export default function Navbar() {
   const settings = useSettings((s) => s.settings);
   const [open, setOpenNow] = useState(isOpenNow(settings));
   const [menu, setMenu] = useState(false);
+  const [active, setActive] = useState('');
+  // Reading progress: a thin caramel line under the navbar that fills as you scroll
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 25, restDelta: 0.001 });
+
+  // Highlight the link for the section currently in view
+  useEffect(() => {
+    const update = () => {
+      const line = window.innerHeight * 0.35;
+      let current = '';
+      for (const [, h] of LINKS) {
+        const el = document.querySelector(h);
+        if (el && el.getBoundingClientRect().top <= line) current = h;
+      }
+      // At the very bottom of the page, the last section is active
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+        current = LINKS[LINKS.length - 1][1];
+      }
+      setActive(current);
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
 
   /** Phone menu links: close the menu (which unlocks page scrolling) first, then scroll to the section.
    *  A plain #link would try to jump while scrolling is still locked, so nothing would move. */
   const goTo = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
     e.preventDefault();
     setMenu(false);
+    setActive(hash);
     document.body.style.overflow = '';
     requestAnimationFrame(() => {
       document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -90,7 +119,22 @@ export default function Navbar() {
         <ul className="hidden items-center gap-1 lg:flex">
           {LINKS.map(([l, h]) => (
             <li key={h}>
-              <a href={h} className="rounded-full px-4 py-2 text-sm text-crema-200 transition hover:text-caramel">
+              <a
+                href={h}
+                onClick={() => setActive(h)}
+                aria-current={active === h ? 'page' : undefined}
+                className={`relative isolate block rounded-full px-4 py-2 text-sm transition-colors hover:text-caramel ${
+                  active === h ? 'font-semibold text-caramel' : 'text-crema-200'
+                }`}
+              >
+                {active === h && (
+                  // shared layoutId makes the pill glide from link to link
+                  <motion.span
+                    layoutId="nav-pill"
+                    className="absolute inset-0 -z-10 rounded-full bg-caramel/15 ring-1 ring-caramel/30"
+                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                  />
+                )}
                 {l}
               </a>
             </li>
@@ -140,6 +184,15 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* Reading progress bar */}
+      {!menu && (
+        <motion.div
+          aria-hidden="true"
+          style={{ scaleX: progress }}
+          className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-gradient-to-r from-caramel-600 to-caramel"
+        />
+      )}
+
       {/* Mobile navigation dropdown drawer */}
       <AnimatePresence>
         {menu && (
@@ -174,7 +227,10 @@ export default function Navbar() {
                     <a
                       href={h}
                       onClick={(e) => goTo(e, h)}
-                      className="flex items-center justify-between rounded-xl px-3.5 py-3 text-lg font-display text-crema transition hover:bg-caramel/10 hover:text-caramel active:bg-caramel/20"
+                      aria-current={active === h ? 'page' : undefined}
+                      className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-lg font-display transition hover:bg-caramel/10 hover:translate-x-1 hover:text-caramel active:bg-caramel/20 ${
+                        active === h ? 'bg-caramel/15 text-caramel' : 'text-crema'
+                      }`}
                     >
                       <span>{l}</span>
                       <span className="text-sm text-crema-400">→</span>
