@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { imageSrc, rs } from '@/lib/api';
 import { flyToCart } from '@/lib/flyToCart';
 import { useCart, useMenu, useToast } from '@/store';
-import { Reveal } from './ui';
+import { AnimatedHeading, Eyebrow } from './ui';
 
 export function showDish(id: number) {
   window.dispatchEvent(new CustomEvent('amigos:show-dish', { detail: id }));
@@ -32,14 +32,15 @@ export default function Favourites() {
   return (
     <section id="favourites" className="relative bg-espresso py-16 sm:py-24 lg:py-28">
       <div className="container-x">
-        <Reveal><p className="eyebrow mb-2 sm:mb-4">House favorites</p></Reveal>
-        <Reveal delay={0.1}><h2 className="h2 max-w-2xl">The dishes and drinks our guests keep coming back for.</h2></Reveal>
+        <Eyebrow className="mb-2 sm:mb-4">House favorites</Eyebrow>
+        <AnimatedHeading className="h2 max-w-2xl" text="The dishes and drinks our guests keep coming back for." highlight="keep coming back for." />
 
         <div className="mt-8 sm:mt-12 grid items-center gap-6 sm:gap-10 lg:grid-cols-[1.1fr_1fr]">
           {/* Active Dish Photo */}
-          <div className="theme-dark relative aspect-[4/3] overflow-hidden rounded-2xl sm:rounded-[28px] bg-espresso-800 shadow-[0_20px_50px_-25px_rgba(74,44,26,.6)]">
+          <div className="group theme-dark relative aspect-[4/3] overflow-hidden rounded-2xl sm:rounded-[28px] bg-espresso-800 shadow-[0_20px_50px_-25px_rgba(74,44,26,.6)]">
             <AnimatePresence mode="popLayout">
               <motion.img
+                whileHover={{ scale: 1.05, transition: { duration: 0.6 } }}
                 key={cur.id}
                 src={imageSrc(cur.imageUrl!)}
                 alt={cur.name}
@@ -56,7 +57,13 @@ export default function Favourites() {
           {/* Dish List */}
           <ol className="grid gap-2">
             {list.map((m, i) => (
-              <li key={m.id}>
+              <motion.li
+                key={m.id}
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+              >
                 <button
                   onMouseEnter={() => setActive(i)}
                   onFocus={() => setActive(i)}
@@ -77,7 +84,7 @@ export default function Favourites() {
                   </span>
                   <span className="shrink-0 whitespace-nowrap font-semibold text-caramel text-sm sm:text-base">{rs(m.price)}</span>
                 </button>
-              </li>
+              </motion.li>
             ))}
             <li className="mt-4 flex flex-col sm:flex-row gap-3">
               <button
