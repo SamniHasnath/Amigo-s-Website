@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { applyTheme, useMenu, useSettings, useTheme } from '@/store';
 import StaffButton from '@/components/StaffButton';
 import Logo from '@/components/Logo';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Experience from '@/components/Experience';
+import DishMarquee from '@/components/DishMarquee';
+import AmbientBeans from '@/components/AmbientBeans';
 import Favourites from '@/components/Favourites';
 import Gather from '@/components/Gather';
 import { hasWebGL } from '@/lib/webgl';
@@ -71,6 +73,8 @@ export default function App() {
   }
 
   return (
+    // reducedMotion="user": visitors who turn on "reduce motion" get fades only, no movement
+    <MotionConfig reducedMotion="user">
     <div className="grain">
       <div className="vignette fixed inset-0 -z-20" data-time={daypart()} />
       {hasWebGL() ? (
@@ -80,9 +84,11 @@ export default function App() {
         <img src={SHOTS.latteArt.src} alt="" aria-hidden="true" className="pointer-events-none absolute right-[6%] top-[18vh] -z-10 hidden w-[34vw] max-w-[460px] rounded-[40px] opacity-90 shadow-2xl md:block" />
       )}
       <Intro />
+      <AmbientBeans />
       <Navbar />
       <main>
         <Hero />
+        <DishMarquee />
         <Experience />
         <Menu />
         <Favourites />
@@ -96,5 +102,6 @@ export default function App() {
       <StaffButton />
       <Toast />
     </div>
+    </MotionConfig>
   );
 }
