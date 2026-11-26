@@ -116,6 +116,17 @@ export default function ShowcaseScene(props: Parameters<typeof Dish>[0]) {
     const narrow = window.innerWidth < 1024; // card sits above the dish below lg
     camera.position.set(0, narrow ? 2.9 : 2.2, narrow ? 8.6 : 6.4);
     camera.lookAt(0, narrow ? 1.45 : 0.75, 0);
+    // On wide screens the price card sits on the left (left: 7%, width: 360px — see MenuShowcase).
+    // Shift the view so the dish is centred in the free space to the right of the card,
+    // leaving a small gap instead of hiding the food behind it.
+    const cam = camera as THREE.PerspectiveCamera;
+    if (!narrow && size.width > 0) {
+      const cardRight = size.width * 0.07 + 360;
+      const shift = Math.max(0, (cardRight + size.width) / 2 - size.width / 2);
+      cam.setViewOffset(size.width, size.height, -shift, 0, size.width, size.height);
+    } else {
+      cam.clearViewOffset();
+    }
     camera.updateProjectionMatrix();
   }, [size.width, size.height, camera]);
   return (
