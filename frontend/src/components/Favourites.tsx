@@ -6,10 +6,16 @@ import { imageSrc, rs } from '@/lib/api';
 import { flyToCart } from '@/lib/flyToCart';
 import { useCart, useMenu, useToast } from '@/store';
 import { AnimatedHeading, Eyebrow } from './ui';
+import { currentPage, navigate, setPendingDish } from '@/lib/router';
 
+/** Open a dish in the Menu page's 3D preview, from any page. */
 export function showDish(id: number) {
-  window.dispatchEvent(new CustomEvent('amigos:show-dish', { detail: id }));
-  document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' });
+  if (currentPage() === 'menu') {
+    window.dispatchEvent(new CustomEvent('amigos:show-dish', { detail: id }));
+  } else {
+    setPendingDish(id); // the Menu page opens it once it has loaded
+    navigate('menu');
+  }
 }
 
 export default function Favourites() {
