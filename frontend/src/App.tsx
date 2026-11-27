@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Experience from '@/components/Experience';
 import DishMarquee from '@/components/DishMarquee';
+import LatteCorner from '@/components/LatteCorner';
 import AmbientBeans from '@/components/AmbientBeans';
 import Favourites from '@/components/Favourites';
 import Gather from '@/components/Gather';
@@ -118,10 +119,17 @@ export default function App() {
         className={page === 'home' ? '' : 'min-h-[70vh] pt-16 sm:pt-[72px]'}
       >
         {page === 'home' && (<>
+          {/* Home shows everything, in the original order; Menu and Gallery are short
+              previews with a button to their full page */}
           <Hero />
           <DishMarquee />
           <Experience />
+          <Menu preview />
           <Favourites />
+          <Gather preview />
+          <LatteCorner />
+          <Visit />
+          <Reserve />
         </>)}
         {page === 'menu' && <Menu />}
         {page === 'gallery' && <Gather />}
