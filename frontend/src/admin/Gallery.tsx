@@ -1,5 +1,5 @@
 // Gallery manager: the café adds, re-orders, captions and removes the photos shown in the
-// "A place to gather" section, and turns the latte-art drawing toy on or off.
+// Gallery page. (The latte-art game switch is in Café settings, since the game is on the home page.)
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { api, imageSrc, uploadImage } from '@/lib/api';
@@ -7,7 +7,7 @@ import { DEFAULT_SETTINGS } from '@/data/settings';
 import { useAuth, useSettings, useToast } from '@/store';
 import type { GalleryPhoto } from '@/types';
 import { Spinner } from '@/components/ui';
-import { Card, Icon, PageHead, Switch } from './ui';
+import { Card, Icon, PageHead } from './ui';
 import { handleAdminError } from './store';
 
 const MAX = 12;
@@ -17,15 +17,14 @@ export default function Gallery() {
   const { settings, set: setSaved } = useSettings();
   const toast = useToast((s) => s.show);
   const [photos, setPhotos] = useState<GalleryPhoto[]>(settings.gallery ?? []);
-  const [latte, setLatte] = useState<boolean>(settings.showLatteArt ?? true);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(0);
   const file = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setPhotos(settings.gallery ?? []); setLatte(settings.showLatteArt ?? true); }, [settings]);
+  useEffect(() => { setPhotos(settings.gallery ?? []); }, [settings]);
   const dirty = useMemo(
-    () => JSON.stringify(photos) !== JSON.stringify(settings.gallery ?? []) || latte !== (settings.showLatteArt ?? true),
-    [photos, latte, settings],
+    () => JSON.stringify(photos) !== JSON.stringify(settings.gallery ?? []),
+    [photos, settings],
   );
 
   const edit = (i: number, p: Partial<GalleryPhoto>) => setPhotos(photos.map((x, j) => (j === i ? { ...x, ...p } : x)));
@@ -59,7 +58,7 @@ export default function Gallery() {
     setBusy(true);
     try {
       const clean = photos.map((p) => ({ src: p.src, caption: p.caption.trim(), alt: (p.alt.trim() || p.caption.trim() || 'Photo from Amigo’s Cafe').slice(0, 200) }));
-      setSaved(await api.updateSettings(token, { gallery: clean, showLatteArt: latte }));
+      setSaved(await api.updateSettings(token, { gallery: clean }));
       toast('Gallery saved. The website is updated.');
     } catch (e) { handleAdminError(e); } finally { setBusy(false); }
   };
@@ -78,13 +77,6 @@ export default function Gallery() {
       <input ref={file} type="file" accept="image/png,image/jpeg,image/webp" multiple hidden onChange={(e) => add(e.target.files)} />
 
       <div className="grid gap-6">
-        <Card title="Latte-art drawing" action={<Switch on={latte} onClick={() => setLatte(!latte)} label="Show the latte-art drawing toy" />}>
-          <p className="text-sm text-crema-200">
-            A small “Try your hand at latte art” card in the gallery. Visitors drag on a cup of coffee to pour foam, etch lines or pour a heart.
-            It’s just for fun — nothing is saved or sent to you. Turn it off if you’d rather show only photos.
-          </p>
-        </Card>
-
         <Card title={`Photos (${photos.length}/${MAX})`} action={
           <button className="text-sm text-crema-400 underline-offset-4 hover:text-caramel hover:underline"
             onClick={() => { if (confirm('Put back the original gallery photos? Your own photos will be removed from the list (until you save, nothing changes on the website).')) setPhotos(DEFAULT_SETTINGS.gallery); }}>
@@ -135,7 +127,7 @@ export default function Gallery() {
           <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
             className="fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-xl items-center gap-3 rounded-2xl border border-caramel/40 bg-espresso-700/95 p-3 pl-5 shadow-2xl backdrop-blur lg:left-[260px]">
             <p className="flex-1 text-sm">You have unsaved changes</p>
-            <button className="btn-ghost !min-h-[42px]" onClick={() => { setPhotos(settings.gallery ?? []); setLatte(settings.showLatteArt ?? true); }}>Undo</button>
+            <button className="btn-ghost !min-h-[42px]" onClick={() => setPhotos(settings.gallery ?? [])}>Undo</button>
             <button className="btn-gold !min-h-[42px]" onClick={save} disabled={busy || uploading > 0}>{busy && <Spinner />} Save gallery</button>
           </motion.div>
         )}
