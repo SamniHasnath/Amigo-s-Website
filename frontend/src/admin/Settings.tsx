@@ -40,6 +40,7 @@ export default function Settings() {
             {([
               ['orderingEnabled', 'Online orders', 'When off, customers can still browse the menu but are asked to call or order at the counter.'],
               ['reservationsEnabled', 'Table bookings', 'When off, the booking form is replaced with your phone number.'],
+              ['showLatteArt', 'Latte-art game on the home page', 'A “Play barista for a moment” section where visitors drag on a cup to pour foam, etch lines or pour a heart. Just for fun — nothing is saved or sent to you.'],
             ] as const).map(([k, l, h]) => (
               <div key={k} className="flex items-start gap-4">
                 <div className="flex-1"><p className="font-semibold">{l}</p><p className="text-sm text-crema-400">{h}</p></div>
