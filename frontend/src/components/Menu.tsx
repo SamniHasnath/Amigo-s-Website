@@ -8,6 +8,7 @@ import Dish3DPreview from './Dish3DPreview';
 import { hasWebGL } from '@/lib/webgl';
 import { flyToCart } from '@/lib/flyToCart';
 import { imageSrc } from '@/lib/api';
+import { takePendingDish } from '@/lib/router';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const SPRING = { type: 'spring', stiffness: 500, damping: 30 } as const;
@@ -52,14 +53,16 @@ export default function Menu() {
 
   // "View in 3D menu" from Signature favourites: show that dish's category and open its 3D preview
   useEffect(() => {
-    const on = (e: Event) => {
-      const id = (e as CustomEvent<number>).detail;
+    const show = (id: number) => {
       const m = items.find((x) => x.id === id);
       if (!m) return;
       setQ('');
       setCat(m.isPopular ? 'popular' : m.category?.slug ?? cat);
       if (webgl) setPreviewId(id);
     };
+    // a dish picked on another page (Favourites, the dish strip): open it once the menu has loaded
+    if (items.length) { const id = takePendingDish(); if (id) show(id); }
+    const on = (e: Event) => show((e as CustomEvent<number>).detail);
     window.addEventListener('amigos:show-dish', on);
     return () => window.removeEventListener('amigos:show-dish', on);
   }, [items, webgl, cat]);
