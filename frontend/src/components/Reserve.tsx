@@ -49,7 +49,7 @@ export default function Reserve() {
               </p>
               {s.orderingEnabled ? (
                 <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                  <a href="#menu" className="btn-gold w-full sm:w-auto text-center">Browse the menu</a>
+                  <a href="#/menu" className="btn-gold w-full sm:w-auto text-center">Browse the menu</a>
                   {count > 0 && <button className="btn-ghost w-full sm:w-auto" onClick={() => openCart(true)}>View my order ({count})</button>}
                 </div>
               ) : (
@@ -93,7 +93,7 @@ export default function Reserve() {
                       {slots.map((t) => <option key={t} value={t}>{to12h(t)}</option>)}
                     </select>
                   </label>
-                  <label className="field">Number of guests
+                  <label className="field">Guests
                     <select className="input" value={f.guests} onChange={(e) => setF({ ...f, guests: Number(e.target.value) })}>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n} {n === 1 ? 'person' : 'guests'}</option>)}
                     </select>
