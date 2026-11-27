@@ -9,7 +9,7 @@ Visitors can browse the menu, view dishes in 3D, order ahead for pickup and book
 - **Full menu** with categories and search. Each dish can be opened in an interactive **3D preview**
 - **Order ahead**: add dishes to a cart and send a pickup order
 - **Table reservations** with date, time and party size
-- **Gallery** of café photos, plus a small interactive latte-art game
+- **Gallery** of café photos, and a small interactive latte-art game on the home page
 - **Visit section** with an embedded map, opening hours and contact details
 - **Live open/closed status**, based on Sri Lanka time
 - **Light and dark themes**
