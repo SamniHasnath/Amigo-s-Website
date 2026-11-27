@@ -120,7 +120,7 @@ export interface CafeSettings {
   pricePerPerson: string;
   /** Photos in the "A place to gather" gallery, in order (max 12). */
   gallery: GalleryPhoto[];
-  /** Show the "draw your own latte art" toy inside the gallery. */
+  /** Show the "draw your own latte art" game on the home page. */
   showLatteArt: boolean;
 }
 
