@@ -107,7 +107,7 @@ export default function GoogleMapCard({ className = '' }: GoogleMapCardProps) {
 
   return (
     <div
-      className={`relative w-full aspect-[4/3] sm:aspect-[16/11] max-h-[540px] rounded-2xl sm:rounded-3xl overflow-hidden border border-crema/15 shadow-2xl select-none bg-[#e5e3df] ${className}`}
+      className={`relative w-full aspect-[4/5] min-[420px]:aspect-[4/3] sm:aspect-[16/11] max-h-[540px] rounded-2xl sm:rounded-3xl overflow-hidden border border-crema/15 shadow-2xl select-none bg-[#e5e3df] ${className}`}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onMouseMove={handleMouseMove}
@@ -491,7 +491,7 @@ export default function GoogleMapCard({ className = '' }: GoogleMapCardProps) {
 
       {/* --- AUTHENTIC GOOGLE MAPS FLOATING PLACE CARD --- */}
       <div
-        className={`absolute top-3 left-3 sm:top-4 sm:left-4 z-20 max-w-[calc(100%-24px)] sm:max-w-[340px] transition-all duration-200 ${
+        className={`absolute top-14 left-3 sm:top-4 sm:left-4 z-20 max-w-[calc(100%-64px)] sm:max-w-[340px] transition-all duration-200 ${
           cardMinimized ? 'w-auto' : 'w-full'
         }`}
       >
