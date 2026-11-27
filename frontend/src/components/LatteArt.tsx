@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'rea
 
 const SIZE = 520;
 
-export default function LatteArt() {
+export default function LatteArt({ wide = false }: { wide?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const last = useRef<{ x: number; y: number } | null>(null);
   const [brush, setBrush] = useState<'pour' | 'etch'>('pour');
@@ -80,8 +80,14 @@ export default function LatteArt() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-4 rounded-2xl sm:rounded-3xl border border-crema/10 bg-espresso p-4 sm:p-5 sm:flex-row sm:items-center lg:flex-col lg:items-stretch">
-      <div className="relative mx-auto w-[min(100%,220px)] sm:w-[240px] shrink-0 sm:mx-0 lg:mx-auto lg:w-[min(100%,240px)]">
+    <div className={wide
+      // full-width spot (Home): cup on the left, text on the right from tablets up
+      ? 'flex h-full flex-col gap-6 rounded-2xl sm:rounded-3xl border border-crema/10 bg-espresso p-5 sm:flex-row sm:items-center sm:gap-8 sm:p-8 lg:gap-14 lg:p-10'
+      // narrow grid cell
+      : 'flex h-full flex-col gap-4 rounded-2xl sm:rounded-3xl border border-crema/10 bg-espresso p-4 sm:p-5 sm:flex-row sm:items-center lg:flex-col lg:items-stretch'}>
+      <div className={wide
+        ? 'relative mx-auto w-[min(100%,260px)] shrink-0 sm:mx-0 sm:w-[260px] lg:w-[320px]'
+        : 'relative mx-auto w-[min(100%,220px)] sm:w-[240px] shrink-0 sm:mx-0 lg:mx-auto lg:w-[min(100%,240px)]'}>
         <canvas
           ref={ref}
           width={SIZE}
@@ -101,9 +107,9 @@ export default function LatteArt() {
         )}
       </div>
       <div className="min-w-0">
-        <h3 className="font-display text-xl sm:text-2xl">Pour your own latte art</h3>
-        <p className="mt-1 text-xs sm:text-sm text-crema-200">
-          While our baristas steam and pour by hand at the counter, try sketching a pattern right on the foam below. Click or drag to pour milk, or switch to etch to draw detail.
+        <h3 className={`font-display ${wide ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}`}>Pour your own latte art</h3>
+        <p className={`mt-1 text-crema-200 ${wide ? 'max-w-md text-sm sm:text-base' : 'text-xs sm:text-sm'}`}>
+          While our baristas steam and pour by hand at the counter, try sketching a pattern right on the foam. Click or drag to pour milk, or switch to etch to draw detail.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {(['pour', 'etch'] as const).map((b) => (
