@@ -13,6 +13,7 @@ import Gather from '@/components/Gather';
 import { hasWebGL } from '@/lib/webgl';
 import { HAS_ADMIN, loadAdmin } from '@/lib/staffPanelLoader';
 import { daypart } from '@/lib/hours';
+import { useRoute, type Page } from '@/lib/router';
 import { SHOTS } from '@/data/gallery';
 import Menu from '@/components/Menu';
 import Reserve from '@/components/Reserve';
@@ -23,6 +24,7 @@ import FloatingOrderBar from '@/components/FloatingOrderBar';
 import { Toast } from '@/components/ui';
 
 const CafeScene = lazy(() => import('@/three/CafeScene'));
+const PAGE_TITLE: Record<Page, string> = { home: 'Home', menu: 'Menu', gallery: 'Gallery', visit: 'Visit us', reserve: 'Reserve' };
 const AdminApp = loadAdmin ? lazy(loadAdmin) : null;
 
 /** '#admin' opens the staff panel; any other hash is a section on the home page. */
@@ -60,8 +62,27 @@ export default function App() {
   const loadSettings = useSettings((s) => s.load);
   const cafeName = useSettings((s) => s.settings.cafeName);
   useEffect(() => { load(); loadSettings(); }, [load, loadSettings, admin]);
-  useEffect(() => { document.title = admin ? `Admin · ${cafeName}` : `${cafeName} · Trincomalee`; }, [admin, cafeName]);
-  useEffect(() => { if (!admin) window.scrollTo({ top: 0 }); }, [admin]);
+  useEffect(() => { if (admin) document.title = `Admin · ${cafeName}`; }, [admin, cafeName]);
+  const route = useRoute();
+  const { page, section } = route;
+  useEffect(() => {
+    if (admin) return;
+    document.title = page === 'home' ? `${cafeName} · Trincomalee` : `${PAGE_TITLE[page]} · ${cafeName}`;
+  }, [admin, page, cafeName]);
+
+  // New page: start at the top. Section link (#/favourites): scroll to it once it's on screen.
+  useEffect(() => {
+    if (admin) return;
+    if (!section) { window.scrollTo({ top: 0 }); return; }
+    let tries = 0, raf = 0;
+    const find = () => {
+      const el = document.getElementById(section);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else if (tries++ < 60) raf = requestAnimationFrame(find);
+    };
+    find();
+    return () => cancelAnimationFrame(raf);
+  }, [admin, route, section]);
 
   if (admin && AdminApp) {
     return (
@@ -77,25 +98,36 @@ export default function App() {
     <MotionConfig reducedMotion="user">
     <div className="grain">
       <div className="vignette fixed inset-0 -z-20" data-time={daypart()} />
-      {hasWebGL() ? (
+      {/* the 3D café background belongs to the home page's hero */}
+      {page === 'home' && (hasWebGL() ? (
         <Suspense fallback={null}><CafeScene /></Suspense>
       ) : (
         /* no 3D available: a real photo stands in for the cup */
         <img src={SHOTS.latteArt.src} alt="" aria-hidden="true" className="pointer-events-none absolute right-[6%] top-[18vh] -z-10 hidden w-[34vw] max-w-[460px] rounded-[40px] opacity-90 shadow-2xl md:block" />
-      )}
+      ))}
       <Intro />
-      <AmbientBeans />
+      <AmbientBeans onHero={page === 'home'} />
       <Navbar />
-      <main>
-        <Hero />
-        <DishMarquee />
-        <Experience />
-        <Menu />
-        <Favourites />
-        <Gather />
-        <Visit />
-        <Reserve />
-      </main>
+      {/* key = page: each page fades in fresh when you switch */}
+      <motion.main
+        key={page}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        // pages other than Home start below the fixed navbar
+        className={page === 'home' ? '' : 'min-h-[70vh] pt-16 sm:pt-[72px]'}
+      >
+        {page === 'home' && (<>
+          <Hero />
+          <DishMarquee />
+          <Experience />
+          <Favourites />
+        </>)}
+        {page === 'menu' && <Menu />}
+        {page === 'gallery' && <Gather />}
+        {page === 'visit' && <Visit />}
+        {page === 'reserve' && <Reserve />}
+      </motion.main>
       <Footer />
       <CartDrawer />
       <FloatingOrderBar />
