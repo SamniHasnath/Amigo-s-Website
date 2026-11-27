@@ -5,14 +5,14 @@ import ThemeToggle from './ThemeToggle';
 import { cartCount, useCart, useSettings } from '@/store';
 import { isOpenNow, shortTime, telHref } from '@/lib/hours';
 import { HAS_ADMIN } from '@/lib/staffPanelLoader';
+import { href, navigate, useRoute, type Page } from '@/lib/router';
 
-const LINKS = [
-  ['Experience', '#experience'],
-  ['Menu', '#menu'],
-  ['Favourites', '#favourites'],
-  ['Gallery', '#gather'],
-  ['Visit', '#visit'],
-  ['Reserve', '#reserve'],
+const LINKS: [string, Page][] = [
+  ['Home', 'home'],
+  ['Menu', 'menu'],
+  ['Gallery', 'gallery'],
+  ['Visit', 'visit'],
+  ['Reserve', 'reserve'],
 ];
 
 export default function Navbar() {
@@ -22,46 +22,18 @@ export default function Navbar() {
   const settings = useSettings((s) => s.settings);
   const [open, setOpenNow] = useState(isOpenNow(settings));
   const [menu, setMenu] = useState(false);
-  const [active, setActive] = useState('');
+  // the highlighted link is simply the page you're on
+  const active = useRoute().page;
   // Reading progress: a thin caramel line under the navbar that fills as you scroll
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 25, restDelta: 0.001 });
 
-  // Highlight the link for the section currently in view
-  useEffect(() => {
-    const update = () => {
-      const line = window.innerHeight * 0.35;
-      let current = '';
-      for (const [, h] of LINKS) {
-        const el = document.querySelector(h);
-        if (el && el.getBoundingClientRect().top <= line) current = h;
-      }
-      // At the very bottom of the page, the last section is active
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
-        current = LINKS[LINKS.length - 1][1];
-      }
-      setActive(current);
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-
-  /** Phone menu links: close the menu (which unlocks page scrolling) first, then scroll to the section.
-   *  A plain #link would try to jump while scrolling is still locked, so nothing would move. */
-  const goTo = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+  /** Phone menu links: close the menu (which unlocks page scrolling) first, then open the page. */
+  const goTo = (e: React.MouseEvent<HTMLAnchorElement>, page: Page) => {
     e.preventDefault();
     setMenu(false);
-    setActive(hash);
     document.body.style.overflow = '';
-    requestAnimationFrame(() => {
-      document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.replaceState(null, '', hash);
-    });
+    requestAnimationFrame(() => navigate(page));
   };
 
   useEffect(() => {
@@ -105,7 +77,7 @@ export default function Navbar() {
         </div>
       )}
       <nav className="container-x flex h-16 sm:h-[72px] items-center justify-between gap-2 sm:gap-4" aria-label="Main">
-        <a href="#hero" aria-label="Amigo's Cafe, back to top" className="shrink-0 flex items-center gap-2">
+        <a href={href('home')} aria-label="Amigo's Cafe, home page" className="shrink-0 flex items-center gap-2">
           <Logo className="text-[24px] sm:text-[28px]" />
           {/* Subtle mobile open badge dot */}
           <span
@@ -120,8 +92,7 @@ export default function Navbar() {
           {LINKS.map(([l, h]) => (
             <li key={h}>
               <a
-                href={h}
-                onClick={() => setActive(h)}
+                href={href(h)}
                 aria-current={active === h ? 'page' : undefined}
                 className={`relative isolate block rounded-full px-4 py-2 text-sm transition-colors hover:text-caramel ${
                   active === h ? 'font-semibold text-caramel' : 'text-crema-200'
@@ -225,7 +196,7 @@ export default function Navbar() {
                 {LINKS.map(([l, h]) => (
                   <li key={h}>
                     <a
-                      href={h}
+                      href={href(h)}
                       onClick={(e) => goTo(e, h)}
                       aria-current={active === h ? 'page' : undefined}
                       className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-lg font-display transition hover:bg-caramel/10 hover:translate-x-1 hover:text-caramel active:bg-caramel/20 ${
