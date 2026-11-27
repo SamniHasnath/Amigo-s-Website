@@ -8,7 +8,7 @@ import Dish3DPreview from './Dish3DPreview';
 import { hasWebGL } from '@/lib/webgl';
 import { flyToCart } from '@/lib/flyToCart';
 import { imageSrc } from '@/lib/api';
-import { takePendingDish } from '@/lib/router';
+import { href, takePendingDish } from '@/lib/router';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const SPRING = { type: 'spring', stiffness: 500, damping: 30 } as const;
@@ -41,7 +41,12 @@ function RollingNumber({ value }: { value: number }) {
   );
 }
 
-export default function Menu() {
+/** How many dishes the home-page preview shows before "View full menu". */
+const PREVIEW_COUNT = 6;
+
+/** The menu. `preview` = the short version on the home page: a few popular dishes and a
+ *  "View full menu" button (no search or category tabs). */
+export default function Menu({ preview = false }: { preview?: boolean }) {
   const { items, categories, loading, error, load } = useMenu();
   const { lines, add, setQty } = useCart();
   const toast = useToast((s) => s.show);
@@ -53,6 +58,7 @@ export default function Menu() {
 
   // "View in 3D menu" from Signature favourites: show that dish's category and open its 3D preview
   useEffect(() => {
+    if (preview) return; // only the full Menu page answers these
     const show = (id: number) => {
       const m = items.find((x) => x.id === id);
       if (!m) return;
@@ -65,7 +71,7 @@ export default function Menu() {
     const on = (e: Event) => show((e as CustomEvent<number>).detail);
     window.addEventListener('amigos:show-dish', on);
     return () => window.removeEventListener('amigos:show-dish', on);
-  }, [items, webgl, cat]);
+  }, [items, webgl, cat, preview]);
 
   const inCat = (m: (typeof items)[number]) => (cat === 'popular' ? m.isPopular : m.category?.slug === cat);
   // the pop-up lets you swipe through the rest of the dish's category
@@ -84,10 +90,11 @@ export default function Menu() {
 
   // Group by section (e.g. "Lemonades" / "Smoothies & Fresh Juices")
   const groups = useMemo(() => {
+    if (preview) return [['Popular right now', visible.slice(0, PREVIEW_COUNT)]] as [string, typeof visible][];
     const map = new Map<string, typeof visible>();
     visible.forEach((m) => map.set(m.section, [...(map.get(m.section) ?? []), m]));
     return [...map.entries()];
-  }, [visible]);
+  }, [visible, preview]);
 
   return (
     <section id="menu" className="relative py-16 sm:py-24 lg:py-28">
@@ -96,9 +103,12 @@ export default function Menu() {
         {/* Header and Controls */}
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <Eyebrow className="mb-2 sm:mb-4">Our full menu</Eyebrow>
+            <Eyebrow className="mb-2 sm:mb-4">{preview ? 'From our menu' : 'Our full menu'}</Eyebrow>
             <AnimatedHeading className="h2" text="Freshly prepared. Made when you order." highlight="Made when you order." />
           </div>
+          {preview ? (
+            <a href={href('menu')} className="btn-ghost hidden shrink-0 sm:inline-flex">View full menu →</a>
+          ) : (
           <div className="flex w-full flex-col sm:w-auto sm:flex-row sm:items-end gap-3">
             <div className="relative w-full sm:w-64 lg:w-72">
               <label className="field w-full">
@@ -125,10 +135,11 @@ export default function Menu() {
               </label>
             </div>
           </div>
+          )}
         </div>
 
-        {/* Categories Tab Bar */}
-        <motion.div
+        {/* Categories Tab Bar (full menu only) */}
+        {!preview && <motion.div
           layoutScroll
           className="no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mt-6 sm:mt-8 flex gap-2 overflow-x-auto pb-2 scroll-smooth"
           role="tablist"
@@ -159,7 +170,7 @@ export default function Menu() {
               </button>
             );
           })}
-        </motion.div>
+        </motion.div>}
 
         {loading && <p className="mt-8 sm:mt-10 flex items-center gap-2.5 text-sm text-crema-200"><Spinner /> Loading the menu…</p>}
         {error && (
@@ -314,7 +325,16 @@ export default function Menu() {
           )}
         </div>
 
-        <p className="mt-8 sm:mt-10 text-xs text-crema-400">All prices in Sri Lankan Rupees (LKR). Order ahead for takeaway or dine in, and pay at the counter when you arrive.</p>
+        {preview ? (
+          !loading && items.length > 0 && (
+            <div className="mt-8 sm:mt-10 flex flex-col items-center gap-2 text-center">
+              <a href={href('menu')} className="btn-gold w-full sm:w-auto">View full menu →</a>
+              <p className="text-xs text-crema-400">{items.length} dishes and drinks, with search and categories</p>
+            </div>
+          )
+        ) : (
+          <p className="mt-8 sm:mt-10 text-xs text-crema-400">All prices in Sri Lankan Rupees (LKR). Order ahead for takeaway or dine in, and pay at the counter when you arrive.</p>
+        )}
       </div>
 
       <Dish3DPreview items={previewItems} focusId={previewId} onClose={() => setPreviewId(null)} />
