@@ -1,13 +1,12 @@
 // Section 5 — Moments at Amigo's: authentic café moments and dishes.
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { imageSrc } from '@/lib/api';
 import { useSettings } from '@/store';
 import type { GalleryPhoto } from '@/types';
 import { AnimatedHeading, Eyebrow, Parallax, Reveal } from './ui';
-
-const LatteArt = lazy(() => import('./LatteArt'));
+import { href } from '@/lib/router';
 
 function Photo({ shot, className = '', ratio = 'aspect-[4/5]', delay = 0, onOpen }: { shot: GalleryPhoto; className?: string; ratio?: string; delay?: number; onOpen: () => void }) {
   return (
@@ -177,10 +176,15 @@ function layout(photos: GalleryPhoto[], latte: boolean): Block[] {
   return out;
 }
 
-export default function Gather() {
+/** Photos shown in the home-page preview: one full editorial group. */
+const PREVIEW_COUNT = 5;
+
+/** The photo gallery. `preview` = the short version on the home page: the first few photos
+ *  and a button to the full Gallery page. */
+export default function Gather({ preview = false }: { preview?: boolean }) {
   const photos = useSettings((s) => s.settings.gallery) ?? [];
-  const latte = useSettings((s) => s.settings.showLatteArt) ?? true;
-  const blocks = layout(photos.slice(0, 12), latte);
+  // the latte-art toy now lives on the Home page (LatteCorner), so the gallery is photos only
+  const blocks = layout(photos.slice(0, preview ? PREVIEW_COUNT : 12), false);
   // photos in the order they appear on the page, for browsing in the viewer
   const shots = blocks.flatMap((b) => (b.kind === 'photo' ? [b.shot] : []));
   const [open, setOpen] = useState<number | null>(null);
@@ -202,15 +206,23 @@ export default function Gather() {
 
         {blocks.length > 0 && (
           <div className="mt-8 sm:mt-14 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-12 md:gap-5">
-            {blocks.map((b, i) => b.kind === 'latte'
-              ? <div key="latte" className={b.cls}><Suspense fallback={<div className="aspect-[4/3] rounded-2xl sm:rounded-3xl bg-espresso" />}><LatteArt /></Suspense></div>
+            {blocks.map((b, i) => b.kind === 'latte' ? null
               : <Photo key={`${i}-${b.shot.src.slice(-40)}`} shot={b.shot} className={b.cls} ratio={b.ratio} delay={(i % 3) * 0.1} onOpen={() => setOpen(shots.indexOf(b.shot))} />)}
           </div>
         )}
         <AnimatePresence>
           {open !== null && shots[open] && <Lightbox shots={shots} index={open} onClose={close} onGo={setOpen} />}
         </AnimatePresence>
-        {photos.length > 0 && <p className="mt-5 sm:mt-6 text-xs text-crema-400">Real snapshots from our counter and tables at 280 Main Street, Trincomalee.</p>}
+        {preview ? (
+          photos.length > 0 && (
+            <div className="mt-8 sm:mt-10 flex flex-col items-center gap-2 text-center">
+              <a href={href('gallery')} className="btn-gold w-full sm:w-auto">See all photos →</a>
+              {photos.length > PREVIEW_COUNT && <p className="text-xs text-crema-400">{Math.min(photos.length, 12)} photos from our counter and tables</p>}
+            </div>
+          )
+        ) : (
+          photos.length > 0 && <p className="mt-5 sm:mt-6 text-xs text-crema-400">Real snapshots from our counter and tables at 280 Main Street, Trincomalee.</p>
+        )}
       </div>
     </section>
   );
