@@ -1,5 +1,5 @@
 // Tiny hash router: each important part of the site is its own page.
-//   #/            Home (hero, dish strip, about, favourites)
+//   #/            Home: everything (menu and gallery as short previews)
 //   #/menu        Menu
 //   #/gallery     Gallery
 //   #/visit       Visit
