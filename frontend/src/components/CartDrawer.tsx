@@ -88,7 +88,7 @@ export default function CartDrawer() {
                         <p className="mt-2 text-xs sm:text-sm max-w-[28ch] mx-auto text-crema-400">
                           Browse our menu to pick your favorite coffee, pasta, panini, or cold drink.
                         </p>
-                        <a href="#menu" onClick={close} className="btn-gold mt-6 inline-flex">Explore the menu</a>
+                        <a href="#/menu" onClick={close} className="btn-gold mt-6 inline-flex">Explore the menu</a>
                       </div>
                     </div>
                   )}
