@@ -35,23 +35,23 @@ export default function Hero() {
             Proper espresso, creamy pastas and spicy devilled wraps - made fresh every day.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05, duration: 0.8 }} className="mt-6 sm:mt-7 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <a href="#menu" className="btn-gold w-full sm:w-auto text-center">See the menu</a>
-            <a href="#reserve" className="btn-ghost w-full sm:w-auto text-center">Book a table</a>
+            <a href="#/menu" className="btn-gold w-full sm:w-auto text-center">See the menu</a>
+            <a href="#/reserve" className="btn-ghost w-full sm:w-auto text-center">Book a table</a>
           </motion.div>
-          <motion.dl initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }} className="mt-8 sm:mt-9 grid grid-cols-[auto_1fr_auto] gap-x-5 border-t border-crema/10 pt-4 sm:border-0 sm:pt-0 sm:flex sm:flex-wrap sm:gap-x-10 sm:gap-y-4 text-xs sm:text-sm text-crema-200">
+          <motion.dl initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }} className="mt-8 sm:mt-9 grid grid-cols-[auto_1fr_auto] gap-x-3 min-[360px]:gap-x-5 border-t border-crema/10 pt-4 sm:border-0 sm:pt-0 sm:flex sm:flex-wrap sm:gap-x-10 sm:gap-y-4 text-xs sm:text-sm text-crema-200">
             <div>
               <dt className="sr-only">Rating</dt>
-              <dd className="font-display text-lg sm:text-2xl text-crema flex items-center gap-1">{s.rating} <span className="text-xs sm:text-base"><Stars /></span></dd>
+              <dd className="font-display text-base min-[360px]:text-lg sm:text-2xl text-crema flex items-center gap-1">{s.rating} <span className="text-xs sm:text-base"><Stars /></span></dd>
               <dd className="text-[11px] sm:text-xs text-crema-400 truncate">{s.reviews} Google reviews</dd>
             </div>
             <div>
               <dt className="sr-only">Price</dt>
-              <dd className="font-display whitespace-nowrap text-lg sm:text-2xl text-crema">{s.pricePerPerson}</dd>
+              <dd className="font-display whitespace-nowrap text-base min-[360px]:text-lg sm:text-2xl text-crema">{s.pricePerPerson}</dd>
               <dd className="text-[11px] sm:text-xs text-crema-400 truncate">average per person</dd>
             </div>
             <div>
               <dt className="sr-only">Hours</dt>
-              <dd className="font-display text-lg sm:text-2xl text-crema truncate">{shortTime(s.openTime)}</dd>
+              <dd className="font-display text-base min-[360px]:text-lg sm:text-2xl text-crema truncate">{shortTime(s.openTime)}</dd>
               <dd className="text-[11px] sm:text-xs text-crema-400 truncate">until {shortTime(s.closeTime)}</dd>
             </div>
           </motion.dl>
@@ -62,7 +62,7 @@ export default function Hero() {
         className="pointer-events-none absolute right-[6%] top-[16%] hidden font-script text-4xl leading-tight text-crema-200 lg:block" aria-hidden="true">
         Right here on<br />Main Street :)
       </motion.p>
-      <a href="#experience" className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-xs text-crema-400 lg:flex [@media(max-height:719px)]:!hidden" aria-label="Scroll to learn more about Amigo's">
+      <a href="#/about" className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-xs text-crema-400 lg:flex [@media(max-height:719px)]:!hidden" aria-label="Scroll to learn more about Amigo's">
         Scroll
         <span className="relative h-10 w-6 rounded-full border border-crema/30">
           <motion.span animate={{ y: [4, 18, 4] }} transition={{ repeat: Infinity, duration: 1.8 }} className="absolute left-1/2 top-0 h-2 w-1 -translate-x-1/2 rounded-full bg-caramel" />
