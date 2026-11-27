@@ -199,7 +199,7 @@ export default function Gather({ preview = false }: { preview?: boolean }) {
           </div>
           <Reveal delay={0.2}>
             <p className="max-w-md text-base sm:text-lg text-crema-200 lg:ml-auto">
-              A glimpse of daily life at our café — fresh rosettas poured at the coffee bar, chilled coolers after the beach, and warm comfort food straight from our kitchen.
+              A glimpse of daily life at our café - fresh rosettas poured at the coffee bar, chilled coolers after the beach, and warm comfort food straight from our kitchen.
             </p>
           </Reveal>
         </div>
