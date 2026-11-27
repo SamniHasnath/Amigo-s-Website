@@ -9,12 +9,12 @@ import type { CafeSettings } from '@/types';
 import { HAS_ADMIN } from '@/lib/staffPanelLoader';
 
 const LINKS = [
-  ['Our story', '#experience'],
-  ['Full menu', '#menu'],
-  ['Favourites', '#favourites'],
-  ['Gallery', '#gather'],
-  ['Find us', '#visit'],
-  ['Book a table', '#reserve'],
+  ['Our story', '#/about'],
+  ['Full menu', '#/menu'],
+  ['Favourites', '#/favourites'],
+  ['Gallery', '#/gallery'],
+  ['Find us', '#/visit'],
+  ['Book a table', '#/reserve'],
 ] as const;
 
 /** "Closes in 2 h 15 min" / "Opens at 11 AM", refreshed every minute. */
@@ -89,8 +89,8 @@ export default function Footer() {
             <h2 className="mt-1 font-display text-2xl font-semibold leading-tight text-crema sm:text-3xl">Order ahead or save a table.</h2>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <a href="#menu" className="btn-gold w-full text-center sm:w-auto">Order now</a>
-            {s.reservationsEnabled !== false && <a href="#reserve" className="btn-ghost w-full text-center sm:w-auto">Book a table</a>}
+            <a href="#/menu" className="btn-gold w-full text-center sm:w-auto">Order now</a>
+            {s.reservationsEnabled !== false && <a href="#/reserve" className="btn-ghost w-full text-center sm:w-auto">Book a table</a>}
           </div>
         </motion.div>
       </div>
@@ -100,7 +100,7 @@ export default function Footer() {
         className="container-x relative grid gap-10 py-12 sm:grid-cols-2 sm:py-14 lg:grid-cols-[1.3fr_1fr_1.1fr_1.1fr] lg:gap-8">
         {/* Brand */}
         <motion.div custom={1} variants={item}>
-          <a href="#hero" aria-label="Back to the top" className="inline-block transition-transform hover:-rotate-2 hover:scale-[1.03]">
+          <a href="#/" aria-label="Home page" className="inline-block transition-transform hover:-rotate-2 hover:scale-[1.03]">
             <Logo className="text-5xl sm:text-6xl" sub />
           </a>
           <p className="mt-3 max-w-xs text-sm text-crema-400">{s.tagline}</p>
