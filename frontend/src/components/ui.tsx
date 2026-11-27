@@ -61,16 +61,20 @@ export function AnimatedHeading({ text, highlight, className = 'h2', as = 'h2' }
 
 /** Small script label above a heading: "writes" itself in from left to right. */
 export function Eyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
+  // The scroll trigger sits on the wrapper: a fully clipped element counts as "not visible"
+  // to the browser, so it could never trigger its own reveal.
   return (
-    <motion.p
-      className={`eyebrow ${className}`}
-      initial={{ clipPath: 'inset(0 100% 0 0)', opacity: 0.4 }}
-      whileInView={{ clipPath: 'inset(0 0% 0 0)', opacity: 1 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.9, ease: EASE }}
-    >
-      {children}
-    </motion.p>
+    <motion.div className={className} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }}>
+      <motion.p
+        className="eyebrow"
+        variants={{
+          hidden: { clipPath: 'inset(0% 100% 0% 0%)', opacity: 0.4 },
+          show: { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, transition: { duration: 0.9, ease: EASE } },
+        }}
+      >
+        {children}
+      </motion.p>
+    </motion.div>
   );
 }
 
