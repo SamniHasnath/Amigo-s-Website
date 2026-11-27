@@ -76,12 +76,13 @@ function FloatingBean({ b, i, scrollY, vh, mx, my }: { b: Bean; i: number; scrol
   );
 }
 
-export default function AmbientBeans() {
+export default function AmbientBeans({ onHero = true }: { onHero?: boolean }) {
   const [vh, setVh] = useState(() => window.innerHeight);
   const [enabled] = useState(() => !prefersReducedMotion() && window.matchMedia('(min-width: 1024px)').matches);
   const { scrollY } = useScroll();
-  // hidden over the hero (it has its own beans), fades in as you scroll past it
-  const layerOpacity = useTransform(scrollY, [vh * 0.45, vh * 0.9], [0, 1]);
+  // on Home: hidden over the hero (it has its own beans), fades in as you scroll past it.
+  // Other pages have no hero, so the beans show straight away.
+  const layerOpacity = useTransform(scrollY, onHero ? [vh * 0.45, vh * 0.9] : [0, 1], onHero ? [0, 1] : [1, 1]);
   const mxRaw = useMotionValue(0), myRaw = useMotionValue(0);
   const mx = useSpring(mxRaw, { stiffness: 40, damping: 18 });
   const my = useSpring(myRaw, { stiffness: 40, damping: 18 });
